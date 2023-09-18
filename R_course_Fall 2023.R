@@ -245,7 +245,16 @@ ggplot(CRSP_years[which(CRSP_years$Group.1<=1979),], aes(x= x, y = Group.1))+
   labs(title = "Stock Market Values from 1925-1979", y = "Year", 
        x = "Values")
 
+#Modify the plot to get different colors for negative and positive values: 
 
+CRSP_years$values <- ifelse(CRSP_years$x >= 0, "Positive", "Negative") #To the left we create a new column called values in the CRSP_years dataframe. To the right we use a conditional function in r, if else. It checks whether the values of x are equal to or greater than 0, thus positive, then the condition is TRUE, otherwise FALSE.
+# 'Positive' is the value assigned to the new values column when the condition is TRUE, 'Negative' when it is FALSE.  
+
+ggplot(CRSP_years[which(CRSP_years$Group.1<=1979),], aes(x= x, y = Group.1, fill = values))+ #Note the last argument; we want the new values column to determine the colors of the plot.
+  geom_bar(stat= "identity")+
+  scale_fill_manual(values = c("Positive" = "turquoise4", "Negative" = "orange")) + #This line specifies the colors we want for respectively positive and negative values. 
+  labs(title = "Stock Market Values from 1925-1979", y = "Year", 
+       x = "Values")
 
 
 
@@ -258,8 +267,9 @@ ggplot(CRSP_years[which(CRSP_years$Group.1<=1979),], aes(x= x, y = Group.1))+
 
 
 
-ggplot(CRSP_years[which(CRSP_years$Group.1>=1980),], aes(x= x, y = Group.1))+
+ggplot(CRSP_years[which(CRSP_years$Group.1>=1980),], aes(x= x, y = Group.1, fill = values))+ #Note the last argument; we want the new values column to determine the colors of the plot.
   geom_bar(stat= "identity")+
+  scale_fill_manual(values = c("Positive" = "turquoise4", "Negative" = "orange")) + #This line specifies the colors we want for respectively positive and negative values.
   labs(title = "Stock Market Values from 1980-2020", y = "Year", 
        x = "Values")
 
