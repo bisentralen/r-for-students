@@ -138,6 +138,8 @@ plot(Height~Sex, col = (c("blue", "grey")))
 
 read_xlsx("CRSP_index_monthly.xlsx") 
 
+#If you have not downloaded this file to your computer yet, you can do it from here: https://github.com/bisentralen/Files/blob/main/CRSP_index_monthly.xlsx
+
 #If you have set the working directory to the folder where this file is 
 #saved, you only need to start typing its name. Then use the tab key to 
 #select the file. NB. You need simple or double quotation marks. 
