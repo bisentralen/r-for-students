@@ -146,7 +146,7 @@ read_xlsx("CRSP_index_monthly.xlsx")
 
 #7.VARIABLES/OBJECTS
 
-#A variables in programming allow you to store values.The variable is a 
+#Variables in programming allow you to store values.The variable is a 
 #sort of a container. You decide yourself the name of your variable. It should 
 #be informative (or else you may get lost if your script becomes extensive)
 #and short and easy to type.  
