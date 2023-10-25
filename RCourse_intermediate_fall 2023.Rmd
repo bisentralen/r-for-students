@@ -1,0 +1,433 @@
+---
+title: "R Course Spring 2023"
+author: "Heidi Karlsen"
+date: "2023-03-27"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Topics:
+
+-   R Markdown
+
+-   R Operators and Functions
+
+-   Correlations
+
+-   Regression Models
+
+-   Statistical Tests
+
+-   Visualisations
+
+-   See our resources for how to [include references and produce reference lists](https://libguides.bi.no/datalab/rmarkdown) in rmarkdown
+
+-   Problems with compiling/knitting PDF report? See [tinytext and problems with compiling PDF's](https://libguides.bi.no/datalab/troublsehooting-r)
+
+## Some Info on R Markdown
+
+Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see [here](http://rmarkdown.rstudio.com). See also an instructive guide [here](https://www.earthdatascience.org/courses/earth-analytics/document-your-science/intro-to-the-rmarkdown-format-and-knitr/).
+
+**To get started**:
+
+-   make sure you have knitr installed, otherwise -\> install.packages("knitr")
+
+-   make sure you have RMarkdown installed, otherwise -\> install.packages("rmarkdown")
+
+-   you can write plain text and embed code blocks either in the:
+
+    -   **source mode** (see on the right hand side of the menu). Here you edit the R Markdown code directly and have control over the formatting and layout of the document.
+    -   **visual mode** (switch to this mode by clicking on "visual" next to "source). Here you have a user-friendly 'graphical user interface' (GUI) allowing you to create and edit R Markdown documents using buttons and menus to format text, insert images, create tables, and add code chunks.
+    -   you can switch as you like between the two modes. Any changes made in the visual editor mode will be reflected in the source editor mode, and vice versa.
+
+-   When you click the **Knit** button a document will be generated which includes both plain text and the output of embedded R code chunks.
+
+To embed R code:
+
+-   If you work in the source mode, press Ctrl + Alt + I. An empty code chunk will appear where you can write and run R code.
+
+-   If you work in the visual mode, you can do the same or go to "Insert" in the menu, select "Code Cell" and R.
+
+```{r}
+
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(MASS)
+
+```
+
+**Including Plots**
+
+You can embed plots. Lets do that using the built-in data set cars as example:
+
+```{r cars, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing the R code that generated the plot.
+
+## **R Operators and Descriptive statistics**
+
+The **%\>% operator** forwards a value, or the result of an expression, into the next function call/expression. See [documentation](https://cran.r-project.org/web/packages/magrittr/index.html).
+
+The **dplyr** is a package to manipulate, clean and summarize data. See [documentation](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html). We will use the dplyr package to calculate the mean of each variable, using its summarize_all() function:
+
+```{r summarize_all()}
+cars %>%  
+  summarize_all(mean)
+```
+
+Another way we can see the means (and more) is simply by using the **summary()** function:
+
+```{r}
+summary(cars)
+```
+
+We can also use the dplyr package to calculate the correlation between the variables. This code uses the **`%>%`** operator to pipe the **`cars`** dataset into a **`summarize()`** function. The **`cor()`** function is a built-in function in R that calculates the correlation between two variables. We store the result in a new variable called **`correlation.`**
+
+```{r}
+cars %>% 
+  summarize(correlation <- cor(speed, dist))
+```
+
+The result is 0.81 (thus, a strong, positive correlation).
+
+We could also in this case calculate the correlation directly using the **cor() function**:
+
+```{r}
+cor(cars$speed, cars$dist)
+```
+
+## Regression models
+
+Regression models are a class of statistical models that let you explore the relationship between a **response variable/dependent variable** and some **explanatory/independent variables.**
+
+Regression makes it possible to make thought experiments, hypotheses, predict the dependent variables, given some independent variables.
+
+-   The **response variable** or **dependent variable** = variable we want to predict
+
+-   The **explanatory variables or independent variables** = the variables that explain how the dependent variable will change
+
+There are different types of regression analysis: linear and logistic
+
+-   **Linear regression**: when the dependent variable is numeric, which is the case here
+
+-   **Logistic regression**: when the variable is logistic (true or false)
+
+Both can be **simple** or **multiple** - simple when there is only one explanatory/independent variable, multiple when there are two or more independent variables.
+
+**We will look at simple and multiple linear regression analyses in this course.**
+
+### Simple Linear Regression Analysis
+
+We will use the already introduced dataset **cars**.
+
+Let's start by visualising the data, using **ggplot** to make a **scatter plot** - this is neat when we want to explore the relation between two numeric variables.
+
+```{r}
+plot_simple_regression <- ggplot(cars, aes(speed, dist))+ 
+  geom_point()+                          
+  geom_smooth(method = "lm", se = FALSE)+  
+  labs(x = "Speed of car", y = "Distance taken to stop") 
+plot_simple_regression
+                                                          
+```
+
+**Explanation of the code above**
+
+-   The first line specifies the dataset and defines the x and y axes
+
+-   The second line selects scatter plot
+
+-   The third line adds a **trend line**. Trend line = fitting a line which follows the data points. We set the **method** to **lm** for linear model, which gives a trend line calculated with a linear regression. By default, **geom_smooth()** shows a standard error ribbon, which can be turned off by setting **se** to FALSE. The trend line in this case is pretty close to the data points, thus, the linear regression seems to be a reasonable fit.
+
+We see that the distance it takes for the car to stop increases as the speed of the car increases.
+
+The straight lines of linear regressions are defined by two properties:
+
+-   **Intercept** = The y value at the point when x is 0. The value of y where the regression line touches 0 on the x axis
+
+-   **Slope** = The steepness of the line: The amount the y value increases if you increase x by one.
+
+To predict the slope we select two points at the graph and calculate the difference of the x values of these points. Then we calculate the difference between the y values at the same two points. To estimate the slope we divide the difference of the y values by the difference of the x values.
+
+The image below displays another set of data but illustrates well how we predict the slope.
+
+```{r, echo=FALSE}
+knitr::include_graphics("/Users/a2110210/OneDrive - BI Norwegian Business School (BIEDU)/Documents/rslope.PNG")
+
+```
+
+Now going back to our data:
+
+```{r}
+plot_simple_regression
+```
+
+Look at the trend line and see where it intersects the y axis to find the intercept (looks like it is around -15)
+
+To predict the slope: we use for instance the values 20 and 10 at the x axis, which corresponds to respectively 63 and 34 (more or less) on the y axis. The differences are: 20 -10 = 10, and 63-24 = 39. To estimate the slope we divide the difference of the y axis by the difference of the x axis: 39/10 = 3,9, so that is the estimated slope.
+
+Now we can run a simple linear regression model to check our guess:
+
+To do that we call the lm()function with two arguments: the formula and the dataset. The first argument, the formula, has the dependent value to the left of the tilde and the independent to the right:
+
+```{r}
+regression_cars <- lm(dist ~ speed, data = cars)
+```
+
+We stored the result in the variable regression_cars, whose value we now will inspect:
+
+```{r}
+regression_cars
+```
+
+This results tells us that we expect the distance taken to break to be -17,6 (which doesn't really makes sense because it doesn't make sense to calculate the break distance when the speed is 0) plus 3.9 times per speed unit. The equation is: dist = -17.58 + 3.93 \* speed.
+
+Now we use the summary() function on the variable with the result of our regression model:
+
+```{r}
+summary(regression_cars)
+```
+
+**Interpreting the results**
+
+-   Std.Error = Standard error: how different the population mean is likely to be from a sample mean
+
+-   t value = test statistics: how close the relation is between the distribution of our data and the distribution predicted under the null hypothesis.
+
+    -   Null hypothesis = the hypothesis that there is no correlation between the entities we are testing. It is the pattern in our data (i.e., the correlation between variables or difference between groups) divided by the variance in the data (i.e., the standard deviation). [Further reading](https://www.scribbr.com/statistics/test-statistic/).
+
+-   p-value = probability value: the probability of finding the given t statistic if the null hypothesis were true. We often say that we can assume from a **p value of 0.05 or lower** that the pattern we have found is statistically significant. A p value of 0.05 means that there are 5 percent chance, if the null hypothesis were true, that we would find a t statistic as strong as the one we have found
+
+    -   Here the p value is 1.49e-12, thus very small.It is represented in scientific notation. It can also be written as 0.00000000000149.
+
+-   Residual standard error: an estimate of the standard deviation of the residuals (prediction errors) in a linear regression model: how much the observed values differ from the predicted values. It measures the overall lack of fit of the model to the data.
+
+    -   RSE here: 15.38 is relatively low taking into account the range of the response variable.
+
+-   Multiple and Adjusted R-squared: Here: (0.6511) indicates that about 65% of the variability in stopping distance can be explained by the speed variable in this model.
+
+    -   The adjusted R-squared value (0.6438) takes into account the number of predictors in the model and is slightly lower than the R-squared value.
+
+-   F-statistic: Measures how well the linear regression model fits the data. It measures the variation between group means. The F-statistic is a ratio of two variances
+
+    -   the variance explained by the regression model (explained variance) and;
+
+    -   the variance not explained by the model (residual variance).
+
+-   DF = Degrees of freedom, meaning the number of values in a statistic that are free to vary
+
+When running multiple regression models the f-statistic may show that even if the p value is not significant for each independent variable, the p value of the total model may be.
+
+### Multiple Linear Regression
+
+We use the built-in dataset **mtcars** and start by inspecting it using the head() function:
+
+```{r}
+head(mtcars)
+
+```
+
+Now lets check correlations for some of its variables; mpg (miles per gallon) is our dependent variable. We want to analyse the relation between this and horsepower (hp), weight, (wt) and displacement (disp).
+
+```{r}
+mtcars %>% 
+  summarize(correlation <- cor(cyl,mpg))
+```
+
+```{r}
+mtcars %>% 
+  summarize(correlation <- cor(hp,mpg))
+```
+
+```{r}
+mtcars %>% 
+   summarize(correlation <- cor(wt,mpg))
+```
+
+```{r}
+mtcars %>% 
+  summarize(correlation <- cor(disp,mpg))
+```
+
+We see that there are strong correlations between each independent variable and the dependent variable, particularly between, respectively, the variable weight (wt) and miles per gallon (mpg), and number of cylinders (cyl) and mpg.
+
+**R Operators - subsetting datasets**
+
+The [] operator lets us create a subset of an object. The formula is: **object[rows, columns]**
+
+We are now going to subset the mtcars dataframe by extracting all rows and a subset of columns consisting of "mpg", "cyl", "wt", "hp", and "disp".
+
+```{r}
+mtcars_subset <- mtcars[, c("mpg", "cyl", "wt", "hp", "disp")]
+```
+
+This syntax **[, c("mgp" ...)]** specifies that we want all rows and the indicated columns in the new dataframe. The **c() function** is used to concatenate specified column names into a vector.
+
+We inspect the result stored in the variable mtcars_subset:
+
+```{r}
+mtcars_subset
+```
+
+Let us use ggplot again to visualise the relations between these variables. We create four plots, one for each pair of dependent and independent variables. (when we have created the first one, we just copy and paste it, change the name of the variable and displace the independent variable with another independent variable):
+
+```{r}
+plot1 <- ggplot(mtcars_subset, aes(wt, mpg))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x= "Weight of car", y = "Miles per gallon" )
+
+
+
+plot2 <-ggplot(mtcars_subset, aes(cyl, mpg))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x= "Number of cylinders", y = "Miles per gallon" )
+
+
+
+plot3 <-ggplot(mtcars_subset, aes(hp, mpg))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x= "Horsepower of car", y = "Miles per gallon" )
+
+
+plot4 <- ggplot(mtcars_subset, aes(disp, mpg))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x= "Displacement", y = "Miles per gallon" )
+```
+
+From the library gridExtra, which we loaded initially, we can display all plots simultaneously:
+
+```{r}
+grid.arrange(plot1, plot2, plot3, plot4)
+```
+
+No we will run the regression model:
+
+```{r}
+
+regression_mtcars <- lm(mpg ~ cyl + wt + hp + disp, data = mtcars)
+
+regression_mtcars
+
+summary(regression_mtcars)
+```
+
+Now, using the model we have fitted, we may also calculate the correlation coefficient between the independent or predicted variables and the dependent or observed variables:
+
+```{r}
+cor(regression_mtcars$fitted.values, mtcars_subset$mpg)
+```
+
+**Interpretation of the results**
+
+-   The correlation coefficient of 0.92 suggests a strong association between the dependent and the independent variables. It measures the difference between observed values and values predicted by the model, whereas the regression analysis lets us predict the fuel efficiency (mpg) using the four independent variables.
+
+-   The R-squared shows that 85 % of the observations of the dependent variables are accounted for by the independent variables.
+
+-   The p-value of 1.061e-10 (= 0.00000000001061)is very low. Thus, the multiple regression model is statistically significant. It suggests that the independent variables as a group were useful in predicting mpg. Among the individual coefficients, only weight (wt), however, was statistically significant, indicating that weight was the strongest predictor of mpg among the four independent variables tested.
+
+-   Since we saw above that the linear correlation between each independent variable and the dependent variable was strong, it may seem strange that only weight as a individual coefficient is statistically significant. A multiple regression analysis, however, assesses the relationship between each independent variable and the dependent variable (mpg in this case) while *controlling for the other independent variables in the model*. Controlling for other variables means trying to *isolate the unique contribution of each independent variable to the dependent variable, while holding all other variables constant*. This allows us to see the relationship between the independent variable and the dependent variable independent of the effects of other variables in the model. In this case, when we account for the effect of weight, horsepower and displacement, there is some evidence - p value close to the threshold of 0.05 - to suggest that the number of cylinders has a significant linear relationship with mpg, but the evidence is not strong enough to conclude this definitively.
+
+-   In order to use the model for prediction, we can write the equation of the model: mpg = 40.82854 + (-1.29332 \* cyl) + (-3.85390 \* wt) + (-0.02054 \* hp) + 0.01160 \* disp.
+
+-   Explanations: 40.82854 = the intercept. Each independent variable is multiplied by the regression coefficients or slopes ("Estimate" in the output under "Coefficients"). So, having the information about a car's cyl, wt, hp and disp, we can predict its fuel efficiency (mpg: miles per gallon) using this equation.
+
+## Statistical Tests
+
+We will use the *survey* dataset from MASS library (which we already have loaded).
+
+```{r}
+head(survey)
+summary(survey)
+```
+
+### T-tests
+
+A t-test is a statistical hypothesis test to determine if there is a statistically significant difference between the means of two groups.
+
+First our hypotheses:
+
+-   Null hypothesis: There is no difference in mean pulse between women and men
+
+-   Alternative hypothesis: There is a difference in mean pulse between women and men
+
+```{r}
+t.test(Pulse~Sex, data = survey, var.equal
+= FALSE, paired = FALSE)
+
+```
+
+-   t (test statistic) = 1.1381
+
+-   DF (degrees of freedom (= the number of values in the final calculation of a statistic that are free to vary)) = 189
+
+-   P-value = 0.2565. The p-value is greater than 0.05, we can therefore \_not\_ reject the null hypothesis.
+
+We can run a t test on the distribution of height as well:
+
+```{r}
+t.test(Height~Sex, data = survey, var.equal
+= FALSE, paired = FALSE)
+
+```
+
+-   We see that we get a very low p-value, indicating that we can (as we intuitively would assume) reject the null hypothesis that there is no difference in mean between men and women.
+
+### Chi-Square tests
+
+Chi-squared test of independence or association between two categorical variables: Two variables x and y are called independent if the probability distribution of one variable is not affected by the presence of the other.
+
+```{r}
+Smoke_Excercise = table(survey$Smoke, survey$Exer)
+Smoke_Excercise
+
+```
+
+Now let us run a chi-square test on our data:
+
+```{r}
+chisq.test(Smoke_Excercise)
+```
+
+We see that the p-value is greater than 0.05. There is a warning message as there are few values. Let's group the "None" and "Some":
+
+```{r}
+Smoke_Excercise1 = cbind(Frequent <- Smoke_Excercise[,"Freq"], 
+                         NonFrequent <- Smoke_Excercise[,"None"] + Smoke_Excercise[,"Some"])
+
+colnames(Smoke_Excercise1) <- c("Frequent", "NonFrequent")
+
+Smoke_Excercise1
+
+```
+
+We run a chi-square test on these grouped data:
+
+```{r}
+
+Smoke_Excercise2 <- chisq.test(Smoke_Excercise1)
+Smoke_Excercise2
+
+```
+
+We see that the p-value is still greater than 0.05 thus we cannot reject the null hypothesis.
+
+Chi-squared test for smoking and sex:
+
+```{r}
+Sex_Smoke <- table(survey$Sex, survey$Smoke)
+Sex_Smoke <- chisq.test(Sex_Smoke)
+Sex_Smoke
+
+```
