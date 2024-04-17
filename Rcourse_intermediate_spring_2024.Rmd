@@ -1,0 +1,325 @@
+---
+title: "R Course"
+author: "Heidi Karlsen"
+date: "2024-04-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Topics
+
+-   RMarkdown
+
+-   R operators
+
+-   Correlations
+
+-   Regression models
+
+-   Statistical tests
+
+-   Visualisations in ggplot
+
+```{r, install and load libraries}
+
+#Packages below not previously installed by you, need to be installed before loading them.
+
+#install.packages("<package name>")
+
+library(gapminder)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(MASS)
+
+```
+
+```{r}
+head(gapminder, 20)
+```
+
+The gapminder dataset provides data about the population, life expectancy and GDP in multiple countries in the world from 1952 to 2007.
+
+## R operator %\>% and statistics
+
+This operator forwards a value, or the result of an expression, into the next function call/expression. See documentation here: <https://cran.r-project.org/web/packages/magrittr/index.html>
+
+It passes the left-hand side data as the first argument to the function on the right-hand side.
+
+### 1. Calculate trends in life expectancy over time
+
+```{r}
+gapminder %>%
+  group_by(year)%>%
+  summarize(average_lifeExp <-mean(lifeExp))
+```
+
+### 2. Calculating average life expectancy and gdp per capita in continents in 2007
+
+(gross domestic product divided by the country's total population
+
+```{r}
+gapminder %>%
+  summarise(average_lifeExp <- mean(lifeExp), average_gdpPercap <- mean(gdpPercap))
+```
+
+```{r}
+gapminder %>%
+  filter(year == 2007)%>%
+  summarise(average_lifeExp <- mean(lifeExp), average_gdpPercap <- mean(gdpPercap))
+```
+
+### Exercise: 
+
+Calculate average life expectancy and average gdp per capita in continents
+
+-   In the entire dataset
+
+-   For one year only
+
+```{r}
+gapminder %>%
+  group_by(continent)%>%
+  summarise(average_lifeExp = mean(lifeExp), average_gdpPercap = mean(gdpPercap))
+
+```
+
+```{r}
+gapminder %>%
+  filter(year == 2007)%>%
+  group_by(continent)%>%
+  summarise(average_lifeExp = mean(lifeExp), average_gdpPercap = mean(gdpPercap))
+  
+```
+
+### 3. Sorting your data with arrange() 
+
+```{r}
+gapminder%>%
+  arrange(lifeExp)
+```
+
+Life expectancy in Africa in 2007
+
+```{r}
+gapminder%>%
+  filter(continent =="Africa", year == 2007)%>%
+  arrange(lifeExp)
+```
+
+```{r}
+gapminder%>%
+  filter(continent== "Africa", year == 2007)%>%
+  arrange(desc(lifeExp))
+```
+
+## Regression models 
+
+### 4a. Plotting relation between life expectancy and gdp per capita
+
+```{r}
+gapminder%>%
+  ggplot(aes(gdpPercap, lifeExp))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)+ #adding a trend line. 
+  coord_cartesian(ylim = c(40, 90))
+  
+  
+```
+
+Trend line = fitting a line which follows the data points. We set the method to lm, for linear model, which gives a trend line calculated with a linear regression.
+
+By default, geom_smooth() shows a standard error ribbon, which can be turned off by setting 'se' to FALSE.
+
+### 4.b Improved plot
+
+-   Given the wide range of GDP per capita values, we can use a log scale. It transforms the scale of the x axis to a logarithmic scale with base 10. Thus every point on the x axis represents a tenfold increase from the previous point.
+
+-   Increase point transparency
+
+```{r}
+ggplot(gapminder, aes(gdpPercap, lifeExp, color = continent))+
+  geom_point(alpha = 0.5)+
+  geom_smooth(method = "lm", se = FALSE, color = "black")+
+  scale_x_log10()
+```
+
+The straight lines of linear regressions are defined by two properties:
+
+-   Intercept = The y value at the point when x is 0. Thus the value of the y axis where the regression line touches 0 on the x axis
+
+-   Slope = The steepness of the line: The amount the y value increases if you increase x by one.
+
+-   The equation of the line is the intercept plus the slope times the x value: y = intercept + slope \* x
+
+-   This trend line is in general pretty close to the data points (although some exceptions) thus, the linear regression seems to be a reasonable fit.
+
+### Correlations
+
+```{r}
+cor(gapminder$lifeExp, gapminder$gdpPercap)
+```
+
+### Simple linear regression 
+
+Regression models are a class of statistical models that let you explore the relationship between a response variable/dependent variable and some explanatory/independent variables
+
+Regression makes it possible to make thought experiments, hypotheses, predict the dependent variables, given some independent variables
+
+The dependent variable = variable we want to predict
+
+The independent variable = the variables that explain how the dependent variable will change
+
+There are different types of regression analysis: linear and logistic
+
+-   Linear regression: when the dependent variable is numeric, which is the case here
+
+-   Logistic regression: when the variable is logistic (true or false)
+
+-   Both can be simple or multiple - simple when there is only one explanatory/independent variable, as is the case here.
+
+```{r}
+
+regression_gapminder <- lm(lifeExp ~ gdpPercap, data = gapminder)
+regression_gapminder
+```
+
+```{r}
+summary(regression_gapminder)
+```
+
+Using these values to predict life expectancy:
+
+```{r}
+LifeExp = 53.96 +0.0007649 *10000
+LifeExp
+```
+
+#### Interpreting the results:
+
+-   Std.Error = Standard error: how different the population mean is likely to be from a sample mean
+
+-   T value = test statistics: how close the relations is between the distribution of our data and the distribution predicted under the null hypothesis
+
+-   Null hypothesis = the hypothesis that there is no correlation between the entities we are testing. it is the pattern in our data \#(i.e., the correlation between variables or difference between groups) divided by the variance in the data (i.e., the standard deviation). See: <https://www.scribbr.com/statistics/test-statistic/>
+
+-   p(\>\|t\|) = p(robability) value: the probability of finding the given t statistic if the null hypothesis were true.
+
+-   We often say that we can assume from a p value of 0.05 or lower that the pattern we have found is statistically significant. A p value of 0.05 means that there are 5 percent chance, if the null hypothesis were true, that we would find a t statistic as strong as the one we have found Here the p value is less than 2.2e-16, thus very small. It is represented in scientific notation. It can also be written as 0.000000000000000022.
+
+-   Residual standard error: an estimate of the standard deviation of the residuals (prediction errors) in a linear regression model: how much the observed values differ from the predicted values. It measures the overall lack of fit of the model to the data. The lower the better.
+
+-   RSE here: 10.49, given the range of life expectancy, this suggests that there is still a substantial amount of variability in life expectancy that isn't captured by gdp per capita.
+
+-   The adjusted R-squared value (0.3403) shows that about 34 % of the variance in life expectancy can be explained by gdp per capita in the model, thus about 65 % is explained by other factors.
+
+-   F-statistic: Measures how well the linear regression model fits the data. It measures the variation between group means. The F-statistic is a ratio of two variances - the variance explained by the regression model (explained variance) and the variance not explained by the model (residual variance).
+
+-   DF = Degrees of freedom, meaning the number of values in a statistic that are free to vary.
+
+### Exercise 
+
+-   Visualise the relation between life expectancy and gdp per capita in 2007
+
+-   Run a simple linear regression on these data
+
+```{r}
+gapminder%>%
+  filter(year == 2007)%>%
+  ggplot(aes(gdpPercap, lifeExp, color = continent))+
+  geom_point(alpha = 0.5)+
+  geom_smooth(method = "lm", se = FALSE, color = "black")+
+  scale_x_log10()
+```
+
+```{r}
+gapminder_2007 <- gapminder%>%
+  filter(year == 2007)
+```
+
+```{r}
+regression_gapminder_2007 <- lm(lifeExp ~ gdpPercap, data = gapminder_2007)
+summary(regression_gapminder_2007)
+```
+
+### More plotting
+
+We prepare for running a multiple linear regression. Let's first analyse the relation between life expectancy and gdp per capita, life expectancy and population - and life expectancy and continent by creating scatter plots with trend lines calculated with linear regression.
+
+```{r}
+
+plot1 <- ggplot(gapminder, aes(gdpPercap, lifeExp))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x = "gdpPercap", y = "lifeExp")+
+  scale_x_log10()
+
+plot2 <- ggplot(gapminder, aes(pop,lifeExp))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x = "pop", y = "lifeExp")+
+  scale_x_log10()
+
+plot3 <- ggplot(gapminder, aes(continent, lifeExp))+
+  geom_point()+
+  geom_smooth(method = "lm", se = FALSE)+
+  labs(x = "continent", y = "lifeExp")
+
+grid.arrange(plot1, plot2, plot3)
+```
+
+### Multiple linear regression
+
+```{r}
+regression_gapminder2 <- lm(lifeExp~pop + gdpPercap + continent, data = gapminder)
+regression_gapminder2
+```
+
+```{r}
+summary(regression_gapminder2)
+```
+
+LifeExp= 47.81+(6.570e−9×pop)+(0.0004495×gdpPercap)+Continent Coefficients
+
+### Interpretation
+
+We see from the R squared value that this model predicts about 58 % of the variance can be explained by the model.
+
+## Statistical tests
+
+Let's use the survey dataset from the MASS package as an examle
+
+```{r}
+head(survey)
+```
+
+```{r}
+summary(survey)
+```
+
+### T-tests
+
+Statistical method to analyse whether there are siginificant differences between the means of two groups. We see if the null hypothesis - that there are no significant difference between the mean - can be rejected or not.
+
+```{r}
+t.test(Pulse~Sex, data = survey, var.equal = TRUE, paired = FALSE)
+```
+
+## Chi-square test
+
+Statistical method to determine whether there is a statistically significant association between categorical variables.
+
+```{r}
+Smoke_Excercise = table(survey$Smoke, survey$Exer)
+```
+
+```{r}
+Smoke_Excercise
+```
+
+```{r}
+chisq.test(Smoke_Excercise)
+```
