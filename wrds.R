@@ -7,18 +7,18 @@
 
 
 
-#install.packages("RPostgres") #install the package RPostgres, which is the library allowing you to connect to WRDS data
+install.packages("RPostgres") #install the package RPostgres, which is the library allowing you to connect to WRDS data
 
 #When the installation is complete, you need to close your R session and quit R Studio and then install configuration files:
 
-#Yyou should now have installed the RPostgres package and then created a .pg.pass file (and a .Rprofile file if you chose to)
+#You should now have installed the RPostgres package and then created a .pg.pass file (and a .Rprofile file if you chose to)
 
 
 library(RPostgres) #Now, load the RPostgres library 
 
 
 
-#________Connecting to WRDS when above stages are executed________
+#________2.Connecting to WRDS when above stages are executed________
 
 
 ## Connection code, which creates a connection to WRDS with all the necessary parameters and saves that connection as wrds:
@@ -27,7 +27,7 @@ wrds <-dbConnect(Postgres(),
                  port=9737,
                  dbname='wrds',
                  sslmode='require',
-                 user='Your_Username_In_wrds') #replace with your WRDS user name
+                 user='your_username_in_wrds') #replace with your WRDS user name
 
 
 
@@ -58,7 +58,6 @@ res <- dbSendQuery(wrds, "select distinct table_schema
                    from information_schema.tables
                    where table_type ='VIEW'
                    order by table_schema")
-
 ### Explanation of the code above:
 
 #### - We use the dbSendQuery()function, which uses the already-established wrds connection to prepare the SQL query string
