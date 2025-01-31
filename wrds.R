@@ -3,18 +3,32 @@
 
 
 ## In order to access WRDS, you'll need to have the Duo Mobile app installed on your smartphone for two-factor Authentification
- 
+
+## Instructions for setting up Duo:
+## https://wrds-www.wharton.upenn.edu/pages/about/log-in-to-wrds-using-two-factor-authentication/
 
 
+## You may access WRDS from the web, using RStudio Server, or from your computer, using RStudio. 
+### This is a guide to using RStudio, from your computer
 
-install.packages("RPostgres") #install the package RPostgres, which is the library allowing you to connect to WRDS data
+
+install.packages("RPostgres") #install the package RPostgres, which is the library allowing you to connect to WRDS data. Uncomment this line when installed.
 
 #When the installation is complete, you need to close your R session and quit R Studio and then install configuration files:
 
-#You should now have installed the RPostgres package and then created a .pg.pass file (and a .Rprofile file if you chose to)
+## First configuration file: you need to create a .pgpass file. See the instructions for doing so on either Mac or Windows here: 
+## - https://wrds-www.wharton.upenn.edu/pages/support/programming-wrds/programming-r/r-from-your-computer/#initial-setup-the-pgpass-pgpassconf-file
+## - Remember to secure your file as specified if you are using Mac, using chmod: 'chmod 0600 ~/.pgpass'
+
+## Second optional configuration file: Consider whether it would be practical for you to create an .Rprofile file (it's not mandatory):
+# - https://wrds-www.wharton.upenn.edu/pages/support/programming-wrds/programming-r/r-from-your-computer/#initial-setup-the-rprofile-file.
+
+
+#Welcome back to the guide - you should now have installed the RPostgres package and then created a .pg.pass file (and a .Rprofile file if you chose to)
 
 
 library(RPostgres) #Now, load the RPostgres library 
+
 
 
 
@@ -70,8 +84,8 @@ res <- dbSendQuery(wrds, "select distinct table_schema
 
 
 data <- dbFetch(res, n=-1) # The dbFetch() function fetches the data that results from running the query res against wrds and stores it in 
-  #a new variable we call data. n is an optional parameter to limit the number of returned records:n=-1 is the default and returns all 
-  #matching rows, whereas for instance n=10, returns the first 10 rows. This is a great way to test a SQL statement against a large dataset quickly.  
+#a new variable we call data. n is an optional parameter to limit the number of returned records:n=-1 is the default and returns all 
+#matching rows, whereas for instance n=10, returns the first 10 rows. This is a great way to test a SQL statement against a large dataset quickly.  
 dbClearResult(res) # closes the connection, making you ready for a new query.
 data # Wiew the data you have retrieved 
 
@@ -146,4 +160,4 @@ date <- as.Date(data$date) #We start by assuring that the 'date' column gets a d
 ggplot(data, aes(y = vwretd, x = date))+
   geom_line(color = 'red')+
   labs(title = "CRSP - Monthly value-weighted returns including dividens - 2007-2023", x = "Date", y = "Monthly Return")
-  
+
